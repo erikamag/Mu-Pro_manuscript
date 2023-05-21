@@ -1,0 +1,70 @@
+### Sample list / meta table: `01.meta.tsv`
+- `SampleID`, `Tissue`, `Gentoype`, `Treatment`, `Replicate`
+- `paired`: paired end or not
+- `spots`: number of reads (single-end) or pairs (paired-end)
+- `avgLength`: average read length
+
+### Result file including trimming and mapping QC stats, raw read count and normalized CPM / FPKM table: `01.rds`
+- can be loaded into R using `x = readRDS("01.rds")`, contains the following data frames:
+- `th`: sample list / meta table, same with `01.meta.tsv`
+- `trimming`: trimming statitics
+  - `sid`: SampleID
+  - `passed_filter_reads`, `low_quality_reads`, `too_many_N_reads`, `too_short_reads`, `too_long_reads`
+- `bamstat`: mapping statistics
+  - `sid`: SampleID
+  - `pair`: read pairs
+    - `pair_bad`, `pair_dup`: pairs that failed QC or duplicates
+    - `pair_map`: mapped pairs (both ends)
+    - `pair_orphan`: pairs with one end mapped
+    - `pair_unmap`: unmapped pairs
+  - `unpair`: singletons (single-end reads or pairs with one end failing QC)
+    - `unpair_bad`, `unpair_dup`: singletons that failed QC or duplicates
+    - `unpair_map`: mapped reads
+    - `unpair_unmap`: unmapped reads
+  - `pair_map_hq`, `pair_orphan_hq`, `unpair_map_hq`: pairs/reads mapped
+  with high quality (i.e., unique)
+  - `pair_map0`, `pair_orphan0`, `unpair_map0`: pairs/reads mapped with 0 mismatch
+  - `pair_map_hq0`, `pair_orphan_hq0`, `unpair_map_hq0`: pairs/reads mapped
+  with high quality (i.e., unique) and with 0 mismatch
+- `fcnt`: raw read counts from featureCounts
+  - `gid`: Gene ID (AGP_v4, Ensembl Plants v37, 46,117 in total)
+  - `SampleID`
+  - `ReadCount`: raw read count
+- `salmon`: raw read counts and normalized TPMs from salmon (gene-level)
+  - `gid`: Gene ID (AGP_v4, Ensembl Plants v37, 46,117 in total)
+  - `SampleID`
+  - `ReadCount`: raw read count
+  - `TPM`: salmon-normalized Transcript per Million values
+- `salmon_tx`: raw read counts and normalized TPMs from salmon (transcript-level)
+  - `tid`: Trascript ID (AGP_v4, Ensembl Plants v37)
+  - `SampleID`
+  - `ReadCount`: raw read count
+  - `TPM`: salmon-normalized Transcript per Million values
+- `tl` - library stats
+  - `SampleID`, `libSize`
+  - `sizeFactor`: DESeq2 library size factor
+  - `normFactor`: edgeR library normalization factor
+- `tm` - normalized expression table
+  - `gid`: Gene ID (AGP_v4, Ensembl Plants v37, 46,117 in total)
+  - `SampleID`
+  - `ReadCount`: raw read count
+  - `nRC`: normalized read count (`nRC = ReadCount / sizeFactor`)
+  - `rCPM`: raw CPM (adds up to 1,000,000 for each sample/library)
+  - `rFPKM`: raw FPKM calculated using rCPM and gene exon length
+  - `rTPM`: raw TPM (adds up to 1,000,000 for each sample/library)
+  - `CPM`: CPM calculated by edgeR (`CPM = rCPM / normFactor`)
+  - `FPKM`: FPKM calculated using CPM and gene exon length
+  - `TPM`: normalized TPM (`TPM = rTPM / normFactor`)
+- `th_m`: replicate merged sample list / meta table
+- `tm_m`: replicate merged expression table
+- `ase_gene`: Gene-level allele specific read counts
+  - `sid`: Sample ID
+  - `gid`: gene ID
+  - `allele1`, `allele2`: allele-specific read counts for each allele. For example, in the case of Mo17xB73, `allele1` represents the Mo17 (first) allele count while `allele2` represents the Mo17 (second) allele count
+- `ase_snp`: SNP-level allele specific read counts
+  - `sid`: Sample ID
+  - `chr`, `pos`, `ref`, `alt`: SNP information
+  - `gt`: sample genotype at this site (either `0|1` or `1|0`)
+    - In the case of `1|0`, allele 1 (maternal allele) is in `alt` state while allele 2 (paternal allele) is the `ref` state
+  - `allele1`, `allele2`: read counts for the maternal (first) allele and paternal (second) allele
+
