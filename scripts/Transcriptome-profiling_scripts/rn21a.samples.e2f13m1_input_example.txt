@@ -1,0 +1,3 @@
+e2f13.m1	e2f13.m1_rep1	C14_R1.fastq.gz	C14_R2.fastq.gz
+e2f13.m1	e2f13.m1_rep2	C15_R1.fastq.gz	C15_R2.fastq.gz
+e2f13.m1	e2f13.m1_rep3	C16_R1.fastq.gz	C16_R2.fastq.gz
