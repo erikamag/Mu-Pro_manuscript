@@ -1,0 +1,34 @@
+genomes:
+  Zmays_W22:
+    alias: W22
+    bed: ~/Zmays_W22/50_annotation/10.bed
+    bismark: ~/Zmays_W22/21_dbs/bismark
+    blastn: ~/Zmays_W22/21_dbs/blastn
+    blastp: ~/Zmays_W22/21_dbs/blastp
+    blat: ~/Zmays_W22/21_dbs/blat/db.2bit
+    bwa: ~/Zmays_W22/21_dbs/bwa/db
+    faa: ~/Zmays_W22/50_annotation/10.aa.fasta
+    fasta: ~/Zmays_W22/10.fasta
+    fasta_idx: ~/Zmays_W22/10.fasta.fai
+    fc_group_features: gene_id
+    fc_group_features_type: gene_biotype
+    fna: ~/Zmays_W22/50_annotation/10.nt.fasta
+    gap_bed: ~/Zmays_W22/15_intervals/11.gap.bed
+    gatk: ~/Zmays_W22/21_dbs/gatk/
+    genome_bed: ~/Zmays_W22/15_intervals/01.chrom.bed
+    genome_sizes: ~/Zmays_W22/15_intervals/01.chrom.sizes
+    gff: ~/Zmays_W22/50_annotation/10.gff
+    gtf: ~/Zmays_W22/50_annotation/10.gtf
+    hisat2: ~/Zmays_W22/21_dbs/hisat2/db
+    macs_gsize: 2133882028
+    pbed: ~/Zmays_W22/50_annotation/15.bed
+    pfaa: ~/Zmays_W22/50_annotation/15.aa.fasta
+    pfna: ~/Zmays_W22/50_annotation/15.nt.fasta
+    pgff: ~/Zmays_W22/50_annotation/15.gff
+    pgtf: ~/Zmays_W22/50_annotation/15.gtf
+    prefix: W
+    rcfg: ~/Zmays_W22/55.rds
+    salmon: ~/Zmays_W22/21_dbs/salmon/db
+    star: ~/Zmays_W22/21_dbs/star/
+    tss: ~/Zmays_W22/50_annotation/10.tss.bed
+    tx2gene: ~/Zmays_W22/21_dbs/salmon/tx2gene.csv
