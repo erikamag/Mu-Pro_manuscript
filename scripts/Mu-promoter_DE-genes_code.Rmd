@@ -1,0 +1,127 @@
+---
+title: "Mu_promoter_code"
+output: html_document
+date: "2023-05-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Identification of DE genes for RNA-seq datasets/Tissue
+#. Coleoptile_tip used as an example
+Read in result file from Nextflow RNA-seq output "01.rds" file from Nextflow RNA-seq output https://nf-co.re/rnaseq
+MIT License. Copyright (c) 2019 Peng Zhou
+See nextflow_rnaseq_Zhou_output.md for details on Nextflow output files
+
+```{r}
+library(dplyr)
+library(reshape2)
+library(tidyverse)
+library(tidyr)
+library(readr)
+
+dird = "~/data"
+
+x = readRDS(file.path(dird, "01.rds")) 
+tm = data.frame(x[["tm"]])
+th = data.frame(x[["th"]])
+
+aa = left_join(tm, th)
+
+# Now I would like to get an expressed gene list for all samples/tissue
+tm_m = data.frame(x[["tm_m"]])
+th_m = data.frame(x[["th_m"]])
+
+thm_m = left_join(tm_m, th_m)
+
+#filter thm_m by tissue- e.g. coleoptile_tip
+tct = thm_m %>% filter(Tissue == "coleoptile_tip")
+
+tct_e = 
+  tct %>% 
+  mutate(res = ifelse(CPM >=1, 1, 0)) %>% # adds a column called res that prints out a 1 if CPM >=1 and a 0 if CPM is < 1
+  dplyr::group_by(gid) %>% # group_by gid means to count the the same gid over different Genotypes as a unit
+  dplyr::summarise(n = n(), n.res = sum(res)) #n prints out how many times each unique gid occurs, n.res sums all res column to count how many times one gid had a CPM >= 1. 
+
+tct_ex = tct_e %>% filter (n.res >= 1) # tm filter for expressed genes
+
+# now I want to write this table to results file, but first want to merge tm_m with tm_expressed only keeping rows in tm_m (gid's) that match tm_expressed for all contrasts/ tissue
+library(plyr)
+tct_x = match_df(tct, tct_ex, on = "gid")
+tct_xu = unique(tct_x$gid) #20979/40651 genes in W22
+```
+# DEseq with prefilter for low read counts. Not necessary to filter for low total read counts!! 
+1. PRE-FILTER
+While it is not necessary to pre-filter low count genes before running the DESeq2 functions, there are two reasons which make pre-filtering useful: by removing rows in which there are very few reads, we reduce the memory size of the dds data object, and we increase the speed of the transformation and testing functions within DESeq2. Here we perform a minimal pre-filtering to keep only rows that have at least 10 reads total. http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
+
+keep <- rowSums(counts(dds)) >= 10
+dds <- dds[keep,]
+
+2. Run DEseq, take res(dds) contrasts want
+3. Filter DEG list: abs(log2fc) >=2, padj < 0.05
+4. Calculate average cpm value across three replicates if not already done
+3. Filter out lowly expressed genes after get final DEG list filtered. Expressed genes: avg. cpm >= 1 cpm in at least one samples/tissue
+
+Not necessary to filter requiring average CPM >=1 before running DE-seq; however, it is a good idea to pre-filter based on raw reads.
+Although DEseq2 does some low-variance filtering internally, the number of genes you feed into the algorithm do have an effect on the parameter estimation and final output (pvalues). Deseq2 encourages users to pre-filter their input read count matrix. It is recommended to remove genes where total read counts (summed raw read counts over all samples) is less than 10.
+
+# DEseq matrix
+Make a different DEseq matrix x each tissue. 
+Design specifies how the counts from each gene depend on our variables in the metadata
+For this dataset the factor we care about is our Genotype (design = ~Genotype)
+tidy=TRUE argument, which tells DESeq2 to output the results table with rownames as a first #column called 'row. tidy= TRUE because moved first column to row names already to get rid of Error: ncol(countData) == nrow(colData) is not TRUE
+
+```{r}
+library("DESeq2")
+library("gplots")
+library("ggplot2")
+
+# filter tm df for Read Count, gid, and SampleID x tissue
+tct_rc = tm_ct %>% select(1:3)
+
+# replace all '-' in Genotype col values with '_'. Counts prefers variables to be letters, numbers,'_' and '.'
+th_ct$Genotype = gsub('-', '_', th_ct$Genotype)
+
+# tct
+#make matrix using df, tm and th with DEseqDataSetFromMatrix().
+tct_c = pivot_wider(tct_rc, names_from = SampleID, values_from = ReadCount) 
+tct_c = column_to_rownames(tct_c, var = "gid")
+dds_ct = DESeqDataSetFromMatrix(countData=tct_c, 
+                              colData=th_ct, 
+                              design=~Genotype, tidy = FALSE)
+# pre-filter for removing sum(raw reads < 10) for each gene. 
+keep = rowSums(counts(dds_ct)) >= 10
+dds_ct = dds_ct[keep,]
+
+# run DESeq
+dds_ct = DESeq(dds_ct)
+# now contrast results of dds to pull out a specific contrast (TF mutant vs W22) or by any Control and Treatment
+rct.wrky2_m2 = as.data.frame(results(dds_ct, contrast = c("Genotype", "wrky2_m2", "W22"), pAdjustMethod = "fdr")) %>% rownames_to_column("gid") %>% add_column(contrast = "wrky2_m2") 
+rct.myb40_m1 = as.data.frame(results(dds_ct, contrast = c("Genotype", "myb40_m1", "W22"), pAdjustMethod = "fdr")) %>% rownames_to_column("gid") %>% add_column(contrast = "myb40_m1") 
+rct.myb40_m2 = as.data.frame(results(dds_ct, contrast = c("Genotype", "myb40_m2", "W22"), pAdjustMethod = "fdr")) %>% rownames_to_column("gid") %>% add_column(contrast = "myb40_m2") 
+rct.e2f13_m1 = as.data.frame(results(dds_ct, contrast = c("Genotype", "e2f13_m1", "W22"), pAdjustMethod = "fdr")) %>% rownames_to_column("gid") %>% add_column(contrast = "e2f13_m1") 
+
+rct = rbind(rct.wrky2_m2, rct.myb40_m1, rct.myb40_m2, rct.e2f13_m1) 
+rct = rct %>% add_column(Tissue = "coleoptile_tip")
+
+#now filter res.deg for expressed genes with average cpm >=1 in at least one sample
+# because using match_df do not need to select or filter tct_x for gid column alone
+rct_dx = plyr::match_df(rct, tct_x, on = "gid") 
+
+# completed for all other tissues and Genotypes separately
+# bind data frames for each tissue
+rn.dx = rbind(rct_dx, rei_dx, rlf_dx, rta_dx, rts_dx) # coleoptile_tip, embryo_imibed, seedling_leaf, tassel and tassel_stem
+rn.dx = rn.dx %>% dplyr::rename("log2fc" = "log2FoldChange")
+
+# numbers check before filtering for DE log2fc and padj cutoffs
+rn.dxn = rn.dx %>% 
+    dplyr::count(contrast) #this will just be how many genes were expressed in each tissue. same numbers as t*_x dfs - the expressed gid list / tissue
+
+rn.de = filter(rn21a.dx, abs(log2fc) >= 1, padj < 0.05) #filter for DE genes only
+rn.den = rn.de %>% 
+    dplyr::count(contrast) # howm any DEGs for each allele
+
+rn.dxn$direction = ifelse(rn.dxn$log2fc >= 0, "up", "down") 
+rn.dxn = rn.dxn %>% mutate(g_de = case_when(abs(log2fc) >= 1 & padj < 0.05 ~ "de")) # the '~' in case_when() is what you want to name a value if it meets the case conditions. 
+rn.dxn = rn.dxn %>% mutate(g_de = case_when(is.na(g_de) ~ "n_de", TRUE ~ as.character(g_de))) # no for all NA's in de column print n_de
+
