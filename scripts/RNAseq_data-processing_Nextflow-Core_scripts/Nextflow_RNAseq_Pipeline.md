@@ -69,10 +69,10 @@
         esc # quote vim insert
         :wq # save and quit
     
-        export NXF_HOME=/home/springer/magnu513/git/nf
-        export NXF_CACHE=/scratch.global/magnu513/nf
+        export NXF_HOME=/git/nf
+        export NXF_CACHE=/scratch.global/nf
         export NXF_EXECUTOR=slurm
-        export NXF_CONDA_CACHEDIR=/home/springer/magnu513/miniconda3/envs
+        export NXF_CONDA_CACHEDIR=/miniconda3/envs
         export NXF_WORK=$NXF_CACHE/work
         export NXF_TEMP=$NXF_CACHE/tmp
         export NXF_SINGULARITY_CACHEDIR=$NXF_CACHE/singularity
@@ -130,7 +130,7 @@
 
 	`nextflow.config` **EDIT**
 	
-		launchDir = "/home/springer/magnu513/git/nf/rn21a/rnaseq" **EDIT** #wherever the `meta.tsv` file is
+		launchDir = "/git/nf/rn21a/rnaseq" **EDIT** #wherever the `meta.tsv` file is
 		
 		workDir = "$NXF_CACHE/work/test"
 			
@@ -179,7 +179,7 @@
 		#SBATCH --mem=150g
 		#SBATCH -p interactive
 	
-	    cd /home/springer/magnu513/git/nf/rn21a/rnaseq
+	    cd /git/nf/rn21a/rnaseq
 	    
 	    conda activate nf
 	    
@@ -224,7 +224,7 @@
 
 **Errors when running pipeline**
     
-    cd /scratch.global/magnu513/nf/work/test/da/7d659c3acf48bd20cac75eff28593d
+    cd /scratch.global/nf/work/test/da/7d659c3acf48bd20cac75eff28593d
     less .command.err
     
 **Error 1:** Caused by: java.io.IOException: No space left on device.
@@ -236,9 +236,9 @@ Looking at the `command.run.txt` file, the script is requesting just under 16GB 
  `less command.run.txt`
 		
 		#!/bin/bash
-		#SBATCH -D /scratch.global/magnu513/nf/work/test/da/7d659c3acf48bd20cac75eff28593d
+		#SBATCH -D /scratch.global/nf/work/test/da/7d659c3acf48bd20cac75eff28593d
 		#SBATCH -J rnaseq:qmap.s06
-		#SBATCH -o /scratch.global/magnu513/nf/work/test/da/7d659c3acf48bd20cac75eff28593d/.command.log
+		#SBATCH -o /scratch.global/nf/work/test/da/7d659c3acf48bd20cac75eff28593d/.command.log
 		#SBATCH --no-requeue
 		#SBATCH -t 25:00:00
 		#SBATCH --mem 15360M
@@ -266,7 +266,7 @@ Looking at the `command.run.txt` file, the script is requesting just under 16GB 
 		  (empty)
 		
 		Work dir:
-		  /scratch.global/magnu513/nf/work/test/77/4735bf6184a00bc89e254921c63585
+		  /scratch.global/nf/work/test/77/4735bf6184a00bc89e254921c63585
 		
 Fix to the error - Add the following section to `~/nextflow.config` (no need to change anything under `~git/nf/`) to increase memory for the qualimap step. Add this section after the params {} section**
 
@@ -293,7 +293,7 @@ When you have fixed the problem you can continue the execution adding the option
 [lock on nextflow session](https://github.com/nextflow-io/nextflow/issues/1300)
 	
 	`N E X T F L O W  ~  version 20.10.0
-	Launching /home/springer/magnu513/git/nf/rnaseq/main.nf [nasty_hawking] - revision: 78f0a943da
+	Launching /git/nf/rnaseq/main.nf [nasty_hawking] - revision: 78f0a943da
 	Unable to acquire lock on session with ID 726edee9-cbd7-44c2-b13d-61a3154a2f76`
 
 Common reasons of this error are:
@@ -302,7 +302,7 @@ Common reasons of this error are:
 
 You can check what process is holding the lock file by using the following command:
 
-	lsof /panfs/roc/groups/15/springer/magnu513/git/nf/rn21a/rnaseq/.nextflow/cache/726edee9-cbd7-44c2-b13d-61a3154a2f76/db/LOCK
+	lsof /git/nf/rn21a/rnaseq/.nextflow/cache/726edee9-cbd7-44c2-b13d-61a3154a2f76/db/LOCK
 
  In order to view this directory with a LOCK ` ~/git/nf/rn21a/rnaseq`
 
@@ -327,7 +327,7 @@ or
     head slurm-1044918.out
     
     N E X T F L O W  ~  version 20.10.0
-    Launching `/home/springer/magnu513/git/nf/rnaseq/main.nf` [wise_bassi] - revision: 78f0a943da
+    Launching `~/git/nf/rnaseq/main.nf` [wise_bassi] - revision: 78f0a943da
     Both GTF and GFF have been provided: Using GTF as priority.
     ----------------------------------------------------
       orionzhou  rnaseq v0.9.1
@@ -349,8 +349,8 @@ added run name to `rn21a.nextflow.sh`
     conda env update -n rnaseq -f $NXF_HOME/configs/environments/rnaseq.yml # ran this instead in an interactive job and it worked to solve the software dependencies
     
 	ERROR: package dependencies. Ran into an error where there was a package that needed to be downgraded
-	pkg_resources.ContextualVersionConflict: (decorator 5.1.0 (`/panfs/roc/groups/15/springer/magnu513/miniconda3/envs/rnaseq/lib/python3.7/site-packages`), Requirement.parse('decorator<5,>=4.3'), {'networkx'})
-	went to working directory `/scratch.global/magnu513/nf/work/rnaseq/rn20a_b/23/06289d12bcd90991f901b332672c4e``
+	pkg_resources.ContextualVersionConflict: (decorator 5.1.0 (`~/miniconda3/envs/rnaseq/lib/python3.7/site-packages`), Requirement.parse('decorator<5,>=4.3'), {'networkx'})
+	went to working directory `/scratch.global/nf/work/rnaseq/rn20a_b/23/06289d12bcd90991f901b332672c4e``
 
 	less .command.log
 
