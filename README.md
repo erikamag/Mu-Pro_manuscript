@@ -1,4 +1,4 @@
-# Mu-Pro_manuscript
+# Mu Promoter Manuscript
 
 **Table S1. 35 *Mutator* mutant alleles isolated from the UniformMu population in maize.** Mutant allele transcriptome data obtained, transcript abundance, and transcriptome assembly predicted transcript structure. UniformMu Mu ID and Stock, Pos: Mu insertion position within the gene, genotyping primers used to isolate the homozygous mutant, and Pedi: pedigree of the mutant stock sampled for RNA-seq (BC = backcross, S = self). RNA-seq CPM and FPKM for mutant and wild type W22, DE data averaged across biological replicates (N), log2fc: log2 fold change of mutant to control, lfcSE: log fold change standard error and FDR adjusted p-value. Transcript assembly transcript structure references categories described in Figure 3A. TRINITY Transcript ID for mutant allele and wild-type W22. 
 
