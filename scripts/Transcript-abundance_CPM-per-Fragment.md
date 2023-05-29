@@ -52,29 +52,71 @@
 7. Calculate and average CPM/Fragment for all biological replicates/Genotype for each shared CDS or exon
 Step 6 and 7 completed in .R
 
-```{r}library(dplyr)library(reshape2)library(tidyverse)library(tidyr)library(readr)
+```{r}
+library(dplyr)
+library(reshape2)
+library(tidyverse)
+library(tidyr)
+library(readr)
 
-x = readRDS(file.path(dird, "rn21a.raw.rds")) tm = data.frame(x[["tm"]])th = data.frame(x[["th"]])
+x = readRDS(file.path(dird, "rn21a.raw.rds")) 
+tm = data.frame(x[["tm"]])
+th = data.frame(x[["th"]])
 
-aa = left_join(tm, th)ab = aa %>% select(1:3,11:17) # filter columns. now I want to group by and sum how many reads there were in each library or replicateac = ab %>% group_by(SampleID, Tissue, Genotype, Treatment, Replicate) %>%  dplyr::summarise(ReadCount_sum = sum(ReadCount)) #calculate the read sum of each biological replicate for each sample (mutant or control). 
+aa = left_join(tm, th)
+ab = aa %>% select(1:3,11:17) # filter columns. now I want to group by and sum how many reads there were in each library or replicate
+ac = ab %>% group_by(SampleID, Tissue, Genotype, Treatment, Replicate) %>%
+  dplyr::summarise(ReadCount_sum = sum(ReadCount)) #calculate the read sum of each biological replicate for each sample (mutant or control). 
 
-# edgeR calcNormFactors()# This function computes scaling factors to convert observed library sizes into effective library sizes. The effective library sizes for use in downstream analysis are lib.size * norm.factors where lib.size contains the original library sizes and norm.factors is the vector of scaling factors computed by this function.
+# edgeR calcNormFactors()
+# This function computes scaling factors to convert observed library sizes into effective library sizes. The effective library sizes for use in downstream analysis are lib.size * norm.factors where lib.size contains the original library sizes and norm.factors is the vector of scaling factors computed by this function.
 
 # let edgeR calculate the normalization factors by creating matrix of ReadCounts. gid = rownames x SampleID = colnames
 
 m1 = ab %>% select(1:3)
-m1a = ab %>% pivot_wider(id_cols = gid, names_from = SampleID, values_from = ReadCount)m1a = column_to_rownames(m1a, var = "gid")m1b = as.matrix(m1a) 
+m1a = ab %>% pivot_wider(id_cols = gid, names_from = SampleID, values_from = ReadCount)
+m1a = column_to_rownames(m1a, var = "gid")
+m1b = as.matrix(m1a) 
 
 # Considering that the formula is CPM = ((counts on the features) / library size) X 1,000,000
-# The effective library size is then the original library size multiplied by the scaling factor.# count / (library size * normalization factor)# Then multiply that by a million to get CPM.
+# The effective library size is then the original library size multiplied by the scaling factor.
+# count / (library size * normalization factor)
+# Then multiply that by a million to get CPM.
 
-library(edgeR)en = calcNormFactors(m1b)
+library(edgeR)
+
+en = calcNormFactors(m1b)
 ens = colSums(m1b)
-na = as.data.frame(en) %>% rownames_to_column(var = "SampleID") %>% dplyr::rename("norm.factors" = "en")nc = as.data.frame(ens) %>% rownames_to_column(var = "SampleID") %>% dplyr::rename("lib.size" = "ens")
+na = as.data.frame(en) %>% rownames_to_column(var = "SampleID") %>% dplyr::rename("norm.factors" = "en")
+nc = as.data.frame(ens) %>% rownames_to_column(var = "SampleID") %>% dplyr::rename("lib.size" = "ens")
 a1 = left_join(na,nc)
 a2 = a1 %>% mutate(lib.effect.size = lib.size*norm.factors) #library effect size calculated
 
-# now caluclate CPM/Fragment by taking (Read Counts/Library Effect size) * 1000000 
-a2 = read_tsv(file.path(dirr, "rn21a_libeffectsize.tsv")) # Library Effect size filemi = read_tsv(file.path(dirr, "cpm_cds.tsv")) # Read count per CDS shared regions filemh = left_join(mi, a2) #Join these filesmj = mh %>% mutate(cpm_cid = (count/(lib.size*norm.factors))*1000000) # calculate CPM/Fragment#now calculate the average CPM/Fragment for each shared CDS among biological replicates/Genotypeae = mj %>% separate_rows(allele, transcript, homology, sep = ",") af = ae %>% group_by(Genotype, cid) %>% mutate(avg_cpm_cid = mean(cpm_cid)) #group by Genotype and by CDS ID (cid)# now add column of mutant x control to pivot wider ai = ah %>% mutate(treatment = if_else(Genotype == "W22", "W22", "mutant"))aii = ai %>% select(-Genotype)#sum by transcript and treatment before pivoting wider aij = aii %>% group_by(tf,allele,transcript,homology,treatment) %>%  mutate(sum_avg_cpm_cid = sum(avg_cpm_cid)) #average CPM/CDS or Fragment for all shared Fragments/Transcript comparison (e.g. W22 x mutant Mu TSS)aij = ungroup(aij)aik = aij %>% group_by(tf,Tissue,allele,transcript,homology,treatment,chr,srd, sum_avg_cpm_cid) %>%   dplyr::summarise(cid = str_c(cid, collapse = ","), start = str_c(start, collapse = ","), end = str_c(end, collapse = ","),avg_cpm_cid = str_c(avg_cpm_cid, collapse = ","))la = ungroup(aik) %>% select(tf,Tissue,allele,transcript,homology,treatment,sum_avg_cpm_cid)aj = la %>% pivot_wider(names_from = treatment, values_from = sum_avg_cpm_cid)
+# now calculate CPM/Fragment by taking (Read Counts/Library Effect size) * 1000000 
+
+a2 = read_tsv(file.path(dirr, "rn21a_libeffectsize.tsv")) # Library Effect size file
+
+mi = read_tsv(file.path(dirr, "cpm_cds.tsv")) # Read count per CDS shared regions file
+
+mh = left_join(mi, a2) #Join these files
+mj = mh %>% mutate(cpm_cid = (count/(lib.size*norm.factors))*1000000) # calculate CPM/Fragment
+
+#now calculate the average CPM/Fragment for each shared CDS among biological replicates/Genotype
+ae = mj %>% separate_rows(allele, transcript, homology, sep = ",") 
+af = ae %>% group_by(Genotype, cid) %>% mutate(avg_cpm_cid = mean(cpm_cid)) #group by Genotype and by CDS ID (cid)
+
+# now add column of mutant x control to pivot wider 
+ai = ah %>% mutate(treatment = if_else(Genotype == "W22", "W22", "mutant"))
+aii = ai %>% select(-Genotype)
+#sum by transcript and treatment before pivoting wider 
+
+aij = aii %>% group_by(tf,allele,transcript,homology,treatment) %>%
+  mutate(sum_avg_cpm_cid = sum(avg_cpm_cid)) #average CPM/CDS or Fragment for all shared Fragments/Transcript comparison (e.g. W22 x mutant Mu TSS)
+aij = ungroup(aij)
+aik = aij %>% group_by(tf,Tissue,allele,transcript,homology,treatment,chr,srd, sum_avg_cpm_cid) %>% 
+  dplyr::summarise(cid = str_c(cid, collapse = ","), start = str_c(start, collapse = ","), end = str_c(end, collapse = ","),avg_cpm_cid = str_c(avg_cpm_cid, collapse = ","))
+
+la = ungroup(aik) %>% select(tf,Tissue,allele,transcript,homology,treatment,sum_avg_cpm_cid)
+aj = la %>% pivot_wider(names_from = treatment, values_from = sum_avg_cpm_cid)
 ```
 See `Table_S5_CPM-Fragment_raw.xlsx` in github repository. Second Sheet includes Library Effect Size calculated
