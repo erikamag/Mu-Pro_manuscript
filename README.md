@@ -13,7 +13,7 @@ Transcript boundaries of gene promoter-*Mu* and *Mu* promoter transcripts: Table
 
 **Table S6. Tissue-specific expression patterns for mutant and wild type transcripts tested by RT-qPCR.** Delta Ct for each biological replicate of each mutant allele and W22 transcript in the 6 tissues tested: coleoptile tip, root, shoot, flag leaf, ear spikelet and tassel stem. RT-qPCR primers used are listed: F_ID and R_ID.
 
-**Data File S1.** FASTA file of TRINITY *de novo* assembled transcripts for mutant and wild type alleles. See extended Table S1: Table_S1_uniformmu_mutant_alleles for TRINITY Transcript IDs.
+**Data File S1.** FASTA file of TRINITY *de novo* assembled transcripts for mutant and wild type alleles. See extended Table S1: Table_S1_uniformmu_mutant_alleles for TRINITY Transcript IDs. The orientation of transcript sequences match the wild-type gene gDNA strand information.
 
 **Data File S2.** Mutant Allele PCR, RT-PCR, and RT-qPCR gene-specific and *Mu*-specific primers.
 
