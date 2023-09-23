@@ -17,4 +17,4 @@ Transcript boundaries of gene TSS-*Mu* and *Mu* TSS transcripts: Table follows f
 
 **Data File S2.** Mutant Allele PCR, RT-PCR, and RT-qPCR gene-specific and *Mu*-specific primers.
 
-**Note:** Tables with raw data are listed as **_raw** and tables included in the manuscript supplemental tables file are listed as **_ms**. RNA-seq data collected can be found at SRA BioProject: SUB12766103 and RNA-seq meta data is included as Table_SX_RNAseq_meta-data.
+**Note:** Tables with raw data are listed as **_raw** and tables included in the manuscript supplemental tables file are listed as **_ms**. RNA-seq data collected can be found at SRA BioProject: SUB12766103 and RNA-seq meta data is included as **Table_SX_RNAseq_meta-data.**
